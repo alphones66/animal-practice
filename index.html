@@ -83,6 +83,15 @@
     .overlay h2 { margin: 0; font-size: 44px; color: #e0561a; }
     .overlay .big { font-size: 60px; }
 
+    /* 動物列表 */
+    .alist { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; width: min(980px, 96vw); overflow-y: auto; max-height: 72vh; padding: 4px; }
+    .acard { background: #fff; border: 5px solid #d9b45a; border-radius: 22px; box-shadow: 0 4px 0 #c49a3c; padding: 10px 6px; text-align: center; cursor: pointer; font-family: inherit; color: var(--ink); }
+    .acard:active { transform: translateY(3px); box-shadow: 0 1px 0 #c49a3c; }
+    .acard .e { font-size: 64px; line-height: 1.1; }
+    .acard .n { font-size: 24px; font-weight: bold; margin-top: 4px; }
+    .acard .f { font-size: 17px; color: #1f6b2a; font-weight: bold; min-height: 1.4em; }
+    .acard .tg { font-size: 13px; color: #8a6d3b; }
+
     /* 家長設定 */
     .parent { width: min(560px, 94vw); background: rgba(255,255,255,.92); border-radius: 18px; padding: 10px 16px; margin-top: 8px; box-shadow: 0 3px 8px rgba(0,0,0,.15); }
     .parent summary { font-size: 20px; font-weight: bold; cursor: pointer; padding: 6px 0; color: #6b5a2a; }
@@ -105,6 +114,7 @@
 <div class="screen active" id="menu">
   <a href="./" class="round-btn" aria-label="回主頁">🏠</a>
   <h1>🦒 動物特徵<span class="ver" id="ver"></span></h1>
+  <button class="big-btn" data-go="list">動物列表<small>所有動物一起看，點一下聽特色</small></button>
   <button class="big-btn" data-go="look">看一看<small>認識每種動物的特色</small></button>
   <button class="big-btn" data-go="pick">選一選<small>有提示，一起學</small></button>
   <button class="big-btn" data-go="test">考考你<small>沒有提示</small></button>
@@ -124,6 +134,13 @@
       <div id="aList"></div>
     </div>
   </details>
+</div>
+
+<!-- ============ 動物列表 ============ -->
+<div class="screen" id="list">
+  <button class="round-btn back" aria-label="回選單">←</button>
+  <div class="hint-line" id="lsHint">點一下動物，聽它的特色</div>
+  <div class="alist" id="alist"></div>
 </div>
 
 <!-- ============ 看一看 ============ -->
@@ -257,6 +274,7 @@ function go(id) {
   $('result').style.display = 'none';
   if (id === 'menu') { paintStat(); paintCustoms(); }
   if (id === 'look') { mode = 'look'; startLook(); }
+  if (id === 'list') paintList();
   if (id === 'pick' || id === 'test') { mode = id; startPlay(); }
 }
 document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => go(b.dataset.go)));
@@ -264,6 +282,19 @@ document.querySelectorAll('.back').forEach(b => b.addEventListener('click', () =
 
 const subjHTML = a => `<div class="emo">${a.e}</div><div class="nm">${a.n}</div>`;
 const sentence = a => `${a.n}，${a.f}。`;   // 主詞 + 特徵
+
+// ============ 動物列表：全部動物一起看，點一下唸出「主詞 + 特徵」============
+function paintList() {
+  const custom = new Set(customs().map(a => a.n));
+  $('alist').innerHTML = animals().map((a, i) =>
+    `<button class="acard" data-i="${i}"><div class="e">${esc(a.e)}</div><div class="n">${esc(a.n)}</div>` +
+    `<div class="f">${esc(a.f)}</div>${custom.has(a.n) ? '<div class="tg">家長新增</div>' : ''}</button>`).join('');
+}
+$('alist').addEventListener('click', e => {
+  const b = e.target.closest('.acard'); if (!b) return;
+  const a = animals()[+b.dataset.i];
+  soundPop(); say(sentence(a));
+});
 
 // ============ 看一看：一次一隻，聽「主詞 + 特徵」============
 let lookList = [], lookI = 0;
