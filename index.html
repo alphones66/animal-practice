@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>動物特徵</title>
+
+  <link rel="manifest" href="animal-manifest.json">
+  <meta name="theme-color" content="#f6e7a8">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="學習教材">
+  <link rel="apple-touch-icon" href="animal-icon-180.png">
+  <link rel="icon" href="animal-icon-192.png">
+
+  <style>
+    :root { --ink: #3b3320; --ok: #3ba53b; --warm: #f06a1f; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; min-height: 100%; overflow-x: hidden; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", sans-serif;
+      background: repeating-linear-gradient(90deg, #f6e7a8 0 60px, #f9eebb 60px 110px, #efdd96 110px 130px, #f9eebb 130px 180px);
+      user-select: none; -webkit-user-select: none; color: var(--ink);
+      padding: calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 16px);
+    }
+    button { font-family: inherit; cursor: pointer; }
+    .screen { display: none; flex-direction: column; align-items: center; gap: 18px; min-height: calc(100vh - 32px); padding-top: 70px; position: relative; }
+    .screen.active { display: flex; }
+    #menu { justify-content: center; padding-top: 40px; }
+
+    .round-btn {
+      position: absolute; top: 0; left: 0; z-index: 5;
+      width: 64px; height: 64px; border-radius: 50%; border: 4px solid #fff;
+      background: var(--warm); color: #fff; font-size: 30px; text-decoration: none; padding: 0;
+      box-shadow: 0 3px 6px rgba(0,0,0,.25); display: flex; align-items: center; justify-content: center;
+    }
+    h1 { margin: 0 0 10px; font-size: clamp(34px, 6vw, 52px); color: #fff; background: #d98a1d; padding: 6px 28px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,.2); }
+    .ver { font-size: 13px; font-weight: 500; color: #fff3d6; background: rgba(0,0,0,.18); border-radius: 9px; padding: 2px 8px; margin-left: 8px; vertical-align: middle; }
+    .big-btn {
+      width: min(440px, 90vw); padding: 16px; font-size: 30px; font-weight: bold;
+      border: 5px solid var(--warm); border-radius: 20px; background: #fdf6c3; color: #e0561a; box-shadow: 0 4px 0 #c84f15;
+    }
+    .big-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #c84f15; }
+    .big-btn small { display: block; font-size: 17px; color: #8a6d3b; font-weight: normal; }
+
+    /* 句子：主詞（動物）＋ 特徵 */
+    .sent { display: flex; align-items: stretch; justify-content: center; gap: clamp(10px, 3vw, 30px); width: min(960px, 96vw); }
+    .scard {
+      flex: 1; min-height: clamp(210px, 38vh, 330px); border-radius: 30px; border: 7px solid #d9b45a; background: #fff;
+      box-shadow: 0 6px 0 #c49a3c; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 10px; text-align: center;
+    }
+    .scard .emo { font-size: clamp(90px, 18vw, 170px); line-height: 1; }
+    .scard .nm { font-size: clamp(36px, 7vw, 68px); font-weight: bold; }
+    .scard.feat { border-color: #bbb; border-style: dashed; background: #fffdf2; box-shadow: none; }
+    .scard.feat .q { font-size: clamp(80px, 15vw, 150px); color: #c8b98a; font-weight: bold; }
+    .scard.feat .ft { font-size: clamp(40px, 8vw, 80px); font-weight: bold; color: #1f6b2a; }
+    .scard.feat.on { border-style: solid; border-color: var(--ok); background: #effbe9; box-shadow: 0 6px 0 #2f7d2f; animation: pop .45s; }
+    .scard.subj { cursor: pointer; }
+    @keyframes pop { 0% { transform: scale(.9); } 60% { transform: scale(1.06); } 100% { transform: scale(1); } }
+
+    .opts { display: flex; gap: clamp(12px, 3vw, 30px); width: min(960px, 96vw); }
+    .opt {
+      flex: 1; font-size: clamp(34px, 7vw, 66px); font-weight: bold; padding: 22px 8px; min-height: clamp(100px, 16vh, 150px);
+      border-radius: 26px; border: 7px solid var(--warm); background: #fdf6c3; color: #e0561a; box-shadow: 0 6px 0 #c84f15;
+    }
+    .opt:active { transform: translateY(4px); box-shadow: 0 1px 0 #c84f15; }
+    .opt.no { opacity: .35; animation: shake .4s; pointer-events: none; }
+    .opt.glow { animation: pulse .9s infinite; border-color: #3ba53b; box-shadow: 0 0 0 10px rgba(255,196,0,.6), 0 6px 0 #2f7d2f; }
+    .opt.right { background: #d9f5d3; border-color: var(--ok); color: #25652a; box-shadow: 0 6px 0 #2f7d2f; }
+    @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+    @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+
+    .go-btn { font-size: clamp(28px, 4.5vw, 42px); font-weight: bold; padding: 14px 46px; border-radius: 24px; border: 6px solid var(--warm); background: #fdf6c3; color: #e0561a; box-shadow: 0 5px 0 #c84f15; }
+    .go-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 #c84f15; }
+    #prog { font-size: clamp(22px, 3.4vw, 32px); letter-spacing: 2px; min-height: 1.3em; background: rgba(255,255,255,.8); padding: 2px 18px; border-radius: 999px; }
+    .hint-line { font-size: clamp(22px, 3.4vw, 32px); font-weight: bold; text-align: center; background: rgba(255,255,255,.85); border-radius: 18px; padding: 8px 22px; min-height: 1.6em; }
+
+    #toast { position: fixed; left: 50%; top: 45%; transform: translate(-50%,-50%) scale(0); font-size: 120px; pointer-events: none; transition: transform .25s; z-index: 10; }
+    #toast.show { transform: translate(-50%,-50%) scale(1); }
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: center; justify-content: center; z-index: 20; }
+    .overlay .box { background: #fdf8dc; border: 6px solid var(--warm); border-radius: 24px; padding: 28px 36px; text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+    .overlay h2 { margin: 0; font-size: 44px; color: #e0561a; }
+    .overlay .big { font-size: 60px; }
+
+    /* 家長設定 */
+    .parent { width: min(560px, 94vw); background: rgba(255,255,255,.92); border-radius: 18px; padding: 10px 16px; margin-top: 8px; box-shadow: 0 3px 8px rgba(0,0,0,.15); }
+    .parent summary { font-size: 20px; font-weight: bold; cursor: pointer; padding: 6px 0; color: #6b5a2a; }
+    .pbody { display: flex; flex-direction: column; gap: 10px; padding: 8px 0 4px; font-size: 18px; }
+    .pstat { background: #fff6d6; border-radius: 12px; padding: 8px 12px; }
+    .padd { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .padd input[type=text] { font-size: 18px; padding: 8px 10px; border: 2px solid #d9b45a; border-radius: 10px; font-family: inherit; min-height: 44px; width: 100%; }
+    .padd label { display: flex; align-items: center; gap: 6px; font-size: 17px; }
+    .padd .full { grid-column: 1 / -1; }
+    .small { font-size: 18px; padding: 8px 18px; border-radius: 12px; border: 3px solid var(--warm); background: #fff; color: #e0561a; font-weight: bold; min-height: 44px; }
+    .crow { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-top: 1px dashed #e4d6a2; }
+    .crow span { flex: 1; }
+    .crow .del { border-color: #c62828; color: #c62828; padding: 4px 12px; }
+    @media (max-width: 600px) { .padd { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<!-- ============ 選單 ============ -->
+<div class="screen active" id="menu">
+  <a href="./" class="round-btn" aria-label="回主頁">🏠</a>
+  <h1>🦒 動物特徵<span class="ver" id="ver"></span></h1>
+  <button class="big-btn" data-go="look">看一看<small>認識每種動物的特色</small></button>
+  <button class="big-btn" data-go="pick">選一選<small>有提示，一起學</small></button>
+  <button class="big-btn" data-go="test">考考你<small>沒有提示</small></button>
+
+  <details class="parent" id="parent">
+    <summary>家長設定</summary>
+    <div class="pbody">
+      <div class="pstat" id="pStat"></div>
+      <div class="padd">
+        <input type="text" id="aName" placeholder="動物（例：松鼠）" maxlength="8">
+        <input type="text" id="aEmoji" placeholder="圖案（例：🐿️）" maxlength="6">
+        <input type="text" id="aFeat" class="full" placeholder="特色（例：尾巴大）" maxlength="10">
+        <label><input type="checkbox" id="aBig"> 嘴巴真的很大</label>
+        <label><input type="checkbox" id="aHabit"> 孩子常說錯</label>
+        <button class="small full" id="aAdd">加入這隻動物</button>
+      </div>
+      <div id="aList"></div>
+    </div>
+  </details>
+</div>
+
+<!-- ============ 看一看 ============ -->
+<div class="screen" id="look">
+  <button class="round-btn back" aria-label="回選單">←</button>
+  <div class="sent">
+    <div class="scard subj" id="lSubj"></div>
+    <div class="scard feat on" id="lFeat"></div>
+  </div>
+  <div class="hint-line" id="lHint">點一下，再聽一次</div>
+  <button class="go-btn" id="lNext">下一隻 ▶</button>
+</div>
+
+<!-- ============ 選一選／考考你 ============ -->
+<div class="screen" id="play">
+  <button class="round-btn back" aria-label="回選單">←</button>
+  <div id="prog"></div>
+  <div class="sent">
+    <div class="scard subj" id="pSubj"></div>
+    <div class="scard feat" id="pFeat"></div>
+  </div>
+  <div class="opts" id="opts"></div>
+</div>
+
+<div id="toast"></div>
+<div class="overlay" id="result">
+  <div class="box">
+    <div class="big">🌟</div>
+    <h2 id="rTitle">完成了！</h2>
+    <button class="big-btn" id="again">再玩一次</button>
+    <button class="big-btn" id="toMenu">回選單</button>
+  </div>
+</div>
+
+<script>
+const APP_VER = 'v2026.10.25-1';   // 每次修改都要換版號，才看得出載入的是不是新版
+function $(id) { return document.getElementById(id); }
+$('ver').textContent = APP_VER;
+
+const rnd = n => Math.floor(Math.random() * n);
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const PRAISES = ['好極了！', '做得好！', '你好棒！', '做對了！'];
+const BIG = '大嘴巴';   // 孩子習慣套在每種動物身上的那句
+
+// ---------- 動物資料 ----------
+// n 名字　e 圖案　f 特色（主詞後面接的那句）　m 嘴巴的說明（糾正時唸）　habit 孩子常說錯　big 嘴巴真的很大
+const BASE = [
+  { n: '長頸鹿', e: '🦒', f: '脖子長', m: '嘴巴不大', habit: true },
+  { n: '猴子', e: '🐒', f: '尾巴長', m: '嘴巴不大', habit: true },
+  { n: '米老鼠', e: '🐭', f: '耳朵圓圓', m: '嘴巴小小的', habit: true },
+  { n: '貓頭鷹', e: '🦉', f: '眼睛大', m: '嘴巴小小的' },
+  { n: '大象', e: '🐘', f: '鼻子長', m: '嘴巴不大' },
+  { n: '兔子', e: '🐰', f: '耳朵長', m: '嘴巴小小的' },
+  { n: '烏龜', e: '🐢', f: '背著殼', m: '嘴巴小小的' },
+  { n: '刺蝟', e: '🦔', f: '身上有刺', m: '嘴巴小小的' },
+  { n: '孔雀', e: '🦚', f: '尾巴漂亮', m: '嘴巴小小的' },
+  { n: '斑馬', e: '🦓', f: '身上有條紋', m: '嘴巴不大' },
+  { n: '企鵝', e: '🐧', f: '會游泳', m: '嘴巴不大' },
+  { n: '熊貓', e: '🐼', f: '有黑眼圈', m: '嘴巴不大' },
+  // 這幾種動物的嘴巴真的很大：一定要放，才不會讓孩子學成「大嘴巴一律是錯的」
+  { n: '河馬', e: '🦛', f: BIG, big: true },
+  { n: '青蛙', e: '🐸', f: BIG, big: true },
+  { n: '鱷魚', e: '🐊', f: BIG, big: true },
+];
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (_) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (_) {} },
+};
+const customs = () => store.get('animalCustom', []);
+const animals = () => [...BASE, ...customs()];
+
+// ---------- 語音／音效 ----------
+let zhVoice = null;
+function pickVoice() { const vs = speechSynthesis.getVoices(); zhVoice = vs.find(v => v.lang === 'zh-TW') || vs.find(v => v.lang.startsWith('zh')) || null; }
+if ('speechSynthesis' in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+function say(text, rate = 0.8) {
+  return new Promise(resolve => {
+    if (!('speechSynthesis' in window)) return resolve();
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'zh-TW'; if (zhVoice) u.voice = zhVoice; u.rate = rate;
+    const fallback = setTimeout(resolve, 1500 + text.length * 400);
+    u.onend = u.onerror = () => { clearTimeout(fallback); resolve(); };
+    speechSynthesis.speak(u);
+  });
+}
+let actx;
+function beep(notes) {
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    notes.forEach(([freq, start, dur]) => {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.frequency.value = freq; o.type = 'triangle';
+      g.gain.setValueAtTime(0.3, actx.currentTime + start);
+      g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + start + dur);
+      o.connect(g).connect(actx.destination);
+      o.start(actx.currentTime + start); o.stop(actx.currentTime + start + dur);
+    });
+  } catch (_) {}
+}
+const soundOk = () => beep([[523, 0, .15], [659, .12, .15], [784, .24, .3]]);
+const soundPop = () => beep([[880, 0, .08]]);
+function toast(t) { const el = $('toast'); el.textContent = t; el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 700); }
+
+// 嘴巴真的很大的動物（河馬、青蛙…）的對照選項：只用「明確不是這隻動物」的特色，才不會出現兩個都對
+const SAFE_OTHER = ['脖子長', '耳朵長', '身上有刺', '背著殼', '有條紋', '有黑眼圈', '有鬃毛'];
+
+// ---------- 今天的紀錄（給家長看：孩子選了幾次「大嘴巴」）----------
+function today() { const d = new Date(); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; }
+function bump(key) {
+  let s = store.get('animalStats', null);
+  if (!s || s.day !== today()) s = { day: today(), ok: 0, habit: 0 };
+  s[key]++; store.set('animalStats', s);
+}
+function paintStat() {
+  const s = store.get('animalStats', null);
+  const ok = s && s.day === today() ? s.ok : 0, h = s && s.day === today() ? s.habit : 0;
+  $('pStat').innerHTML = `今天：一次就答對 <b>${ok}</b> 題；選了「${BIG}」<b>${h}</b> 次`;
+}
+
+// ---------- 畫面切換 ----------
+let session = 0;   // 切換畫面時 +1，取消還在進行的語音／等待
+let mode = 'pick';
+function go(id) {
+  session++;
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  const screen = (id === 'pick' || id === 'test') ? 'play' : id;
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === screen));
+  $('result').style.display = 'none';
+  if (id === 'menu') { paintStat(); paintCustoms(); }
+  if (id === 'look') { mode = 'look'; startLook(); }
+  if (id === 'pick' || id === 'test') { mode = id; startPlay(); }
+}
+document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => go(b.dataset.go)));
+document.querySelectorAll('.back').forEach(b => b.addEventListener('click', () => go('menu')));
+
+const subjHTML = a => `<div class="emo">${a.e}</div><div class="nm">${a.n}</div>`;
+const sentence = a => `${a.n}，${a.f}。`;   // 主詞 + 特徵
+
+// ============ 看一看：一次一隻，聽「主詞 + 特徵」============
+let lookList = [], lookI = 0;
+function startLook() {
+  const all = animals();
+  // 孩子常說錯的先看，嘴巴真的很大的放最後（先學會「每種動物各有各的特色」）
+  lookList = [...all.filter(a => a.habit && !a.big), ...all.filter(a => !a.habit && !a.big), ...all.filter(a => a.big)];
+  lookI = 0; showLook();
+}
+async function showLook() {
+  const a = lookList[lookI], s = session;
+  $('lSubj').innerHTML = subjHTML(a);
+  $('lFeat').className = 'scard feat on';
+  $('lFeat').innerHTML = `<div class="ft">${a.f}</div>`;
+  $('lNext').textContent = lookI >= lookList.length - 1 ? '看完了 ✓' : '下一隻 ▶';
+  await say(sentence(a));
+  if (s !== session) return;
+}
+$('lSubj').addEventListener('click', () => { soundPop(); say(sentence(lookList[lookI])); });
+$('lFeat').addEventListener('click', () => { soundPop(); say(sentence(lookList[lookI])); });
+$('lNext').addEventListener('click', () => {
+  soundPop();
+  if (lookI >= lookList.length - 1) { showResult('看完了！'); return; }
+  lookI++; showLook();
+});
+
+// ============ 選一選／考考你：「動物 ＋ ？」選一個特色 ============
+const QN = 8;
+let round = [], qi = 0, qLocked = true, qMissed = false, cur = null;
+function makeRound(n) {
+  const all = animals();
+  const habit = shuffle(all.filter(a => a.habit && !a.big)).slice(0, n - 2);      // 孩子常說錯的（家長標記的都算），每一輪一定出現
+  const bigs = shuffle(all.filter(a => a.big)).slice(0, 2);                        // 嘴巴真的很大的，每一輪也一定出現
+  const others = shuffle(all.filter(a => !habit.includes(a) && !bigs.includes(a)));
+  return shuffle([...habit, ...bigs, ...others].slice(0, n));
+}
+function startPlay() { round = makeRound(QN); qi = 0; newQ(); }
+function paintProg() { $('prog').textContent = '⭐'.repeat(qi) + '☆'.repeat(round.length - qi); }
+
+function newQ() {
+  cur = round[qi]; qLocked = false; qMissed = false;
+  const all = animals();
+  // 兩個選項：正確的特色，和「大嘴巴」；如果這隻動物嘴巴真的很大，就用另一個特色當對照
+  const other = cur.big ? SAFE_OTHER[rnd(SAFE_OTHER.length)] : BIG;
+  const opts = shuffle([cur.f, other]);
+  paintProg();
+  $('pSubj').innerHTML = subjHTML(cur);
+  $('pFeat').className = 'scard feat';
+  $('pFeat').innerHTML = '<div class="q">？</div>';
+  $('opts').innerHTML = opts.map(t => `<button class="opt${mode === 'pick' && qi < 4 && t === cur.f ? ' glow' : ''}" data-t="${t}">${t}</button>`).join('');   // 選一選的前 4 題：正確的那個會閃
+  say(`${cur.n}，怎麼樣？`);
+}
+$('pSubj').addEventListener('click', () => { if (cur) { soundPop(); say(`${cur.n}，怎麼樣？`); } });
+
+$('opts').addEventListener('click', async e => {
+  const b = e.target.closest('.opt');
+  if (!b || qLocked) return;
+  const s = session, t = b.dataset.t;
+  if (t === cur.f) {
+    qLocked = true;
+    document.querySelectorAll('.opt').forEach(x => x.classList.remove('glow'));
+    b.classList.add('right');
+    $('pFeat').className = 'scard feat on'; $('pFeat').innerHTML = `<div class="ft">${cur.f}</div>`;
+    soundOk(); toast('🎉');
+    if (!qMissed) bump('ok');
+    qi++; paintProg();
+    await say(`對！${sentence(cur)}`);
+    await wait(500); if (s !== session) return;
+    if (qi >= round.length) showResult('完成了！'); else newQ();
+  } else {
+    // 選錯：不扣分、沒有難過的聲音。輕輕搖一下，說明這隻動物的特色，正確的那個開始閃，等她點
+    qMissed = true;
+    if (t === BIG) bump('habit');
+    b.classList.add('no');
+    document.querySelectorAll('.opt').forEach(x => { if (x.dataset.t === cur.f) x.classList.add('glow'); });
+    say(t === BIG && !cur.big ? `${cur.n}的${cur.m || '嘴巴不大'}。${sentence(cur)}` : `再看看。${sentence(cur)}`);
+  }
+});
+
+function showResult(title) {
+  $('rTitle').textContent = title;
+  $('result').style.display = 'flex';
+  soundOk();
+  say(title === '看完了！' ? '看完了！你好棒！' : '完成了！你好棒！');
+}
+$('again').addEventListener('click', () => { $('result').style.display = 'none'; go(mode); });
+$('toMenu').addEventListener('click', () => go('menu'));
+
+// ============ 家長設定：新增動物 ============
+function paintCustoms() {
+  const list = customs();
+  $('aList').innerHTML = list.length ? list.map((a, i) => `<div class="crow"><span>${esc(a.e)} ${esc(a.n)}：${esc(a.f)}${a.big ? '（嘴巴真的很大）' : ''}${a.habit ? '（常說錯）' : ''}</span><button class="small del" data-i="${i}">刪除</button></div>`).join('') : '<div style="color:#8a7d55">還沒有新增的動物</div>';
+}
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+$('aBig').addEventListener('change', () => { $('aFeat').disabled = $('aBig').checked; if ($('aBig').checked) $('aFeat').value = BIG; else $('aFeat').value = ''; });
+$('aAdd').addEventListener('click', () => {
+  const n = $('aName').value.trim(), e = $('aEmoji').value.trim(), big = $('aBig').checked, f = big ? BIG : $('aFeat').value.trim();
+  if (!n || !e || !f) { alert('請填寫：動物名字、圖案、特色'); return; }
+  const list = customs(); list.push({ n, e, f, big, habit: $('aHabit').checked && !big, m: '嘴巴不大' });
+  store.set('animalCustom', list);
+  ['aName', 'aEmoji', 'aFeat'].forEach(id => { $(id).value = ''; }); $('aBig').checked = false; $('aHabit').checked = false; $('aFeat').disabled = false;
+  paintCustoms();
+});
+$('aList').addEventListener('click', e => {
+  const b = e.target.closest('.del'); if (!b) return;
+  const list = customs(); list.splice(+b.dataset.i, 1); store.set('animalCustom', list); paintCustoms();
+});
+
+paintStat(); paintCustoms();
+if ('serviceWorker' in navigator && window.isSecureContext) navigator.serviceWorker.register('sw.js');
+</script>
+<script src="music.js" data-style="playful"></script>
+</body>
+</html>
