@@ -7,3 +7,7 @@
 - 家長設定：新增動物、看今天選了幾次「大嘴巴」（資料只存在這台裝置的瀏覽器）
 
 純靜態網頁，沒有伺服器，也沒有任何學習紀錄上傳。
+
+## 圖片來源
+
+動物圖片來自 [Noto Emoji](https://github.com/googlefonts/noto-emoji)（Google），授權條款見 `img/LICENSE-noto-emoji.txt` 與該專案說明。

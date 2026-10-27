@@ -88,6 +88,18 @@
     .acard { background: #fff; border: 5px solid #d9b45a; border-radius: 22px; box-shadow: 0 4px 0 #c49a3c; padding: 10px 6px; text-align: center; cursor: pointer; font-family: inherit; color: var(--ink); }
     .acard:active { transform: translateY(3px); box-shadow: 0 1px 0 #c49a3c; }
     .acard .e { font-size: 64px; line-height: 1.1; }
+    .acard .limg { width: 74px; height: 74px; display: block; margin: 0 auto; }
+
+    /* 動物圖：圈出特色的部位，旁邊用放大鏡特寫 */
+    .pic { position: relative; width: clamp(170px, 30vw, 290px); aspect-ratio: 1; }
+    .pic .pimg { width: 100%; height: 100%; display: block; }
+    .pic .ov { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+    .pic .ring { fill: rgba(232,50,28,.14); stroke: #e8321c; stroke-width: 2.8; animation: ringp 1s infinite; }
+    .pic .ln { stroke: #e8321c; stroke-width: 1.8; stroke-dasharray: 3 2; }
+    .pic .lens { position: absolute; border-radius: 50%; border: 5px solid #e8321c; background-color: #fff; background-repeat: no-repeat; box-shadow: 0 3px 10px rgba(0,0,0,.35); animation: lensin .5s both; }
+    @keyframes ringp { 0%, 100% { stroke-opacity: 1; } 50% { stroke-opacity: .3; } }
+    @keyframes lensin { from { transform: scale(.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) { .pic .ring, .pic .lens { animation: none; } }
     .acard .n { font-size: 24px; font-weight: bold; margin-top: 4px; }
     .acard .f { font-size: 17px; color: #1f6b2a; font-weight: bold; min-height: 1.4em; }
     .acard .tg { font-size: 13px; color: #8a6d3b; }
@@ -176,7 +188,7 @@
 </div>
 
 <script>
-const APP_VER = 'v2026.10.25-1';   // 每次修改都要換版號，才看得出載入的是不是新版
+const APP_VER = 'v2026.10.27-1';   // 每次修改都要換版號，才看得出載入的是不是新版
 function $(id) { return document.getElementById(id); }
 $('ver').textContent = APP_VER;
 
@@ -189,22 +201,22 @@ const BIG = '大嘴巴';   // 孩子習慣套在每種動物身上的那句
 // ---------- 動物資料 ----------
 // n 名字　e 圖案　f 特色（主詞後面接的那句）　m 嘴巴的說明（糾正時唸）　habit 孩子常說錯　big 嘴巴真的很大
 const BASE = [
-  { n: '長頸鹿', e: '🦒', f: '脖子長', m: '嘴巴不大', habit: true },
-  { n: '猴子', e: '🐒', f: '尾巴長', m: '嘴巴不大', habit: true },
-  { n: '米老鼠', e: '🐭', f: '耳朵圓圓', m: '嘴巴小小的', habit: true },
-  { n: '貓頭鷹', e: '🦉', f: '眼睛大', m: '嘴巴小小的' },
-  { n: '大象', e: '🐘', f: '鼻子長', m: '嘴巴不大' },
-  { n: '兔子', e: '🐰', f: '耳朵長', m: '嘴巴小小的' },
-  { n: '烏龜', e: '🐢', f: '背著殼', m: '嘴巴小小的' },
-  { n: '刺蝟', e: '🦔', f: '身上有刺', m: '嘴巴小小的' },
-  { n: '孔雀', e: '🦚', f: '尾巴漂亮', m: '嘴巴小小的' },
-  { n: '斑馬', e: '🦓', f: '身上有條紋', m: '嘴巴不大' },
-  { n: '企鵝', e: '🐧', f: '會游泳', m: '嘴巴不大' },
-  { n: '熊貓', e: '🐼', f: '有黑眼圈', m: '嘴巴不大' },
+  { n: '長頸鹿', e: '🦒', f: '脖子長', m: '嘴巴不大', habit: true, img: 'giraffe', p: '脖子', z: { x: 41, y: 33, r: 17 }, s: 1.5, lp: 'tr' },
+  { n: '猴子', e: '🐒', f: '尾巴長', m: '嘴巴不大', habit: true, img: 'monkey' },
+  { n: '米老鼠', e: '🐭', f: '耳朵圓圓', m: '嘴巴小小的', habit: true, img: 'mouse' },
+  { n: '貓頭鷹', e: '🦉', f: '眼睛大', m: '嘴巴小小的', img: 'owl', p: '眼睛', z: { x: 50, y: 35, r: 24 }, s: 1.25, lp: 'br' },
+  { n: '大象', e: '🐘', f: '鼻子長', m: '嘴巴不大', img: 'elephant', p: '鼻子', z: { x: 19, y: 59, r: 22 }, s: 1.2, lp: 'tr' },
+  { n: '兔子', e: '🐰', f: '耳朵長', m: '嘴巴小小的', img: 'rabbit' },
+  { n: '烏龜', e: '🐢', f: '背著殼', m: '嘴巴小小的', img: 'turtle' },
+  { n: '刺蝟', e: '🦔', f: '身上有刺', m: '嘴巴小小的', img: 'hedgehog' },
+  { n: '孔雀', e: '🦚', f: '尾巴漂亮', m: '嘴巴小小的', img: 'peacock' },
+  { n: '斑馬', e: '🦓', f: '身上有條紋', m: '嘴巴不大', img: 'zebra' },
+  { n: '企鵝', e: '🐧', f: '會游泳', m: '嘴巴不大', img: 'penguin' },
+  { n: '熊貓', e: '🐼', f: '有黑眼圈', m: '嘴巴不大', img: 'panda' },
   // 這幾種動物的嘴巴真的很大：一定要放，才不會讓孩子學成「大嘴巴一律是錯的」
-  { n: '河馬', e: '🦛', f: BIG, big: true },
-  { n: '青蛙', e: '🐸', f: BIG, big: true },
-  { n: '鱷魚', e: '🐊', f: BIG, big: true },
+  { n: '河馬', e: '🦛', f: BIG, big: true, img: 'hippo' },
+  { n: '青蛙', e: '🐸', f: BIG, big: true, img: 'frog' },
+  { n: '鱷魚', e: '🐊', f: BIG, big: true, img: 'crocodile' },
 ];
 const store = {
   get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (_) { return d; } },
@@ -280,14 +292,30 @@ function go(id) {
 document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => go(b.dataset.go)));
 document.querySelectorAll('.back').forEach(b => b.addEventListener('click', () => go('menu')));
 
-const subjHTML = a => `<div class="emo">${a.e}</div><div class="nm">${a.n}</div>`;
+// 動物圖：hl=true 時，如果這隻動物有設定「要圈的位置」，就圈出特色的部位，旁邊用放大鏡特寫
+function picHTML(a, hl) {
+  if (!a.img) return `<div class="emo">${esc(a.e)}</div>`;   // 家長新增的動物沒有圖檔，沿用 emoji
+  let h = `<div class="pic"><img class="pimg" src="img/${a.img}.svg" alt="">`;
+  if (hl && a.z) {
+    const { x, y, r } = a.z, L = 46, S = a.s || 1.5;                  // L：放大鏡直徑（%）　S：放大幾倍
+    const lx = (a.lp || 'tr').includes('l') ? 0 : 100 - L, ly = (a.lp || 'tr').includes('t') ? 0 : 100 - L;
+    const cx = lx + L / 2, cy = ly + L / 2, k = S * 100 / L;   // k：放大後的圖比放大鏡寬幾倍
+    const px = (0.5 - x / 100 * k) / (1 - k) * 100, py = (0.5 - y / 100 * k) / (1 - k) * 100;   // 讓要看的那一點剛好在放大鏡正中間
+    const dx = cx - x, dy = cy - y, d = Math.hypot(dx, dy) || 1;
+    h += `<svg class="ov" viewBox="0 0 100 100"><circle class="ring" cx="${x}" cy="${y}" r="${r}"/>` +
+      `<line class="ln" x1="${x + dx / d * r}" y1="${y + dy / d * r}" x2="${cx - dx / d * L / 2}" y2="${cy - dy / d * L / 2}"/></svg>` +
+      `<div class="lens" style="left:${lx}%;top:${ly}%;width:${L}%;height:${L}%;background-image:url(img/${a.img}.svg);background-size:${k * 100}%;background-position:${px}% ${py}%"></div>`;
+  }
+  return h + '</div>';
+}
+const subjHTML = (a, hl) => `${picHTML(a, hl)}<div class="nm">${esc(a.n)}</div>`;
 const sentence = a => `${a.n}，${a.f}。`;   // 主詞 + 特徵
 
 // ============ 動物列表：全部動物一起看，點一下唸出「主詞 + 特徵」============
 function paintList() {
   const custom = new Set(customs().map(a => a.n));
   $('alist').innerHTML = animals().map((a, i) =>
-    `<button class="acard" data-i="${i}"><div class="e">${esc(a.e)}</div><div class="n">${esc(a.n)}</div>` +
+    `<button class="acard" data-i="${i}">${a.img ? `<img class="limg" src="img/${a.img}.svg" alt="">` : `<div class="e">${esc(a.e)}</div>`}<div class="n">${esc(a.n)}</div>` +
     `<div class="f">${esc(a.f)}</div>${custom.has(a.n) ? '<div class="tg">家長新增</div>' : ''}</button>`).join('');
 }
 $('alist').addEventListener('click', e => {
@@ -306,11 +334,11 @@ function startLook() {
 }
 async function showLook() {
   const a = lookList[lookI], s = session;
-  $('lSubj').innerHTML = subjHTML(a);
+  $('lSubj').innerHTML = subjHTML(a, true);
   $('lFeat').className = 'scard feat on';
   $('lFeat').innerHTML = `<div class="ft">${a.f}</div>`;
   $('lNext').textContent = lookI >= lookList.length - 1 ? '看完了 ✓' : '下一隻 ▶';
-  await say(sentence(a));
+  await say(a.z && a.p ? `看，${a.p}。${sentence(a)}` : sentence(a));
   if (s !== session) return;
 }
 $('lSubj').addEventListener('click', () => { soundPop(); say(sentence(lookList[lookI])); });
@@ -358,6 +386,7 @@ $('opts').addEventListener('click', async e => {
     document.querySelectorAll('.opt').forEach(x => x.classList.remove('glow'));
     b.classList.add('right');
     $('pFeat').className = 'scard feat on'; $('pFeat').innerHTML = `<div class="ft">${cur.f}</div>`;
+    $('pSubj').innerHTML = subjHTML(cur, true);   // 答對了：圈出那個部位
     soundOk(); toast('🎉');
     if (!qMissed) bump('ok');
     qi++; paintProg();

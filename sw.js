@@ -1,4 +1,4 @@
-const CACHE = 'animal-pages-v1';
+const CACHE = 'animal-pages-v2';
 const FILES = [
   './',
   'index.html',
@@ -6,7 +6,22 @@ const FILES = [
   'music.js',
   'animal-icon-180.png',
   'animal-icon-192.png',
-  'animal-icon-512.png'
+  'animal-icon-512.png',
+  'img/giraffe.svg',
+  'img/monkey.svg',
+  'img/mouse.svg',
+  'img/owl.svg',
+  'img/elephant.svg',
+  'img/rabbit.svg',
+  'img/turtle.svg',
+  'img/hedgehog.svg',
+  'img/peacock.svg',
+  'img/zebra.svg',
+  'img/penguin.svg',
+  'img/panda.svg',
+  'img/hippo.svg',
+  'img/frog.svg',
+  'img/crocodile.svg'
 ];
 
 self.addEventListener('install', event => {
