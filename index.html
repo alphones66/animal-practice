@@ -188,7 +188,7 @@
 </div>
 
 <script>
-const APP_VER = 'v2026.10.27-1';   // 每次修改都要換版號，才看得出載入的是不是新版
+const APP_VER = 'v2026.10.27-2';   // 每次修改都要換版號，才看得出載入的是不是新版
 function $(id) { return document.getElementById(id); }
 $('ver').textContent = APP_VER;
 
@@ -202,21 +202,21 @@ const BIG = '大嘴巴';   // 孩子習慣套在每種動物身上的那句
 // n 名字　e 圖案　f 特色（主詞後面接的那句）　m 嘴巴的說明（糾正時唸）　habit 孩子常說錯　big 嘴巴真的很大
 const BASE = [
   { n: '長頸鹿', e: '🦒', f: '脖子長', m: '嘴巴不大', habit: true, img: 'giraffe', p: '脖子', z: { x: 41, y: 33, r: 17 }, s: 1.5, lp: 'tr' },
-  { n: '猴子', e: '🐒', f: '尾巴長', m: '嘴巴不大', habit: true, img: 'monkey' },
-  { n: '米老鼠', e: '🐭', f: '耳朵圓圓', m: '嘴巴小小的', habit: true, img: 'mouse' },
+  { n: '猴子', e: '🐒', f: '尾巴長', m: '嘴巴不大', habit: true, img: 'monkey', p: '尾巴', z: { x: 76, y: 42, r: 27 }, lp: 'bl' },
+  { n: '米老鼠', e: '🐭', f: '耳朵圓圓', m: '嘴巴小小的', habit: true, img: 'mouse', p: '耳朵', z: { x: 54, y: 30, r: 31 }, lp: 'br' },
   { n: '貓頭鷹', e: '🦉', f: '眼睛大', m: '嘴巴小小的', img: 'owl', p: '眼睛', z: { x: 50, y: 35, r: 24 }, s: 1.25, lp: 'br' },
   { n: '大象', e: '🐘', f: '鼻子長', m: '嘴巴不大', img: 'elephant', p: '鼻子', z: { x: 19, y: 59, r: 22 }, s: 1.2, lp: 'tr' },
-  { n: '兔子', e: '🐰', f: '耳朵長', m: '嘴巴小小的', img: 'rabbit' },
-  { n: '烏龜', e: '🐢', f: '背著殼', m: '嘴巴小小的', img: 'turtle' },
-  { n: '刺蝟', e: '🦔', f: '身上有刺', m: '嘴巴小小的', img: 'hedgehog' },
-  { n: '孔雀', e: '🦚', f: '尾巴漂亮', m: '嘴巴小小的', img: 'peacock' },
-  { n: '斑馬', e: '🦓', f: '身上有條紋', m: '嘴巴不大', img: 'zebra' },
-  { n: '企鵝', e: '🐧', f: '會游泳', m: '嘴巴不大', img: 'penguin' },
-  { n: '熊貓', e: '🐼', f: '有黑眼圈', m: '嘴巴不大', img: 'panda' },
+  { n: '兔子', e: '🐰', f: '耳朵長', m: '嘴巴小小的', img: 'rabbit', p: '耳朵', z: { x: 52, y: 25, r: 27 }, lp: 'br' },
+  { n: '烏龜', e: '🐢', f: '背著殼', m: '嘴巴小小的', img: 'turtle', p: '殼', z: { x: 62, y: 43, r: 26 }, lp: 'tl' },
+  { n: '刺蝟', e: '🦔', f: '身上有刺', m: '嘴巴小小的', img: 'hedgehog', p: '刺', z: { x: 68, y: 46, r: 28 }, lp: 'tl' },
+  { n: '孔雀', e: '🦚', f: '尾巴漂亮', m: '嘴巴小小的', img: 'peacock', p: '尾巴', z: { x: 52, y: 45, r: 40 }, lp: 'tr' },
+  { n: '斑馬', e: '🦓', f: '身上有條紋', m: '嘴巴不大', img: 'zebra', p: '條紋', z: { x: 60, y: 45, r: 32 }, lp: 'tr' },
+  { n: '企鵝', e: '🐧', f: '會游泳', m: '嘴巴不大', img: 'penguin', p: '翅膀', z: { x: 66, y: 58, r: 22 }, lp: 'bl' },
+  { n: '熊貓', e: '🐼', f: '有黑眼圈', m: '嘴巴不大', img: 'panda', p: '黑眼圈', z: { x: 53, y: 48, r: 34 }, lp: 'br' },
   // 這幾種動物的嘴巴真的很大：一定要放，才不會讓孩子學成「大嘴巴一律是錯的」
-  { n: '河馬', e: '🦛', f: BIG, big: true, img: 'hippo' },
-  { n: '青蛙', e: '🐸', f: BIG, big: true, img: 'frog' },
-  { n: '鱷魚', e: '🐊', f: BIG, big: true, img: 'crocodile' },
+  { n: '河馬', e: '🦛', f: BIG, big: true, img: 'hippo', p: '嘴巴', z: { x: 20, y: 67, r: 20 }, lp: 'tr' },
+  { n: '青蛙', e: '🐸', f: BIG, big: true, img: 'frog', p: '嘴巴', z: { x: 50, y: 65, r: 32 }, lp: 'tr' },
+  { n: '鱷魚', e: '🐊', f: BIG, big: true, img: 'crocodile', p: '嘴巴', z: { x: 27, y: 86, r: 17 }, lp: 'tr' },
 ];
 const store = {
   get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (_) { return d; } },
@@ -297,7 +297,7 @@ function picHTML(a, hl) {
   if (!a.img) return `<div class="emo">${esc(a.e)}</div>`;   // 家長新增的動物沒有圖檔，沿用 emoji
   let h = `<div class="pic"><img class="pimg" src="img/${a.img}.svg" alt="">`;
   if (hl && a.z) {
-    const { x, y, r } = a.z, L = 46, S = a.s || 1.5;                  // L：放大鏡直徑（%）　S：放大幾倍
+    const { x, y, r } = a.z, L = 46, S = a.s || Math.max(1, Math.min(2.2, L / (2.3 * r)));                  // L：放大鏡直徑（%）　S：放大幾倍
     const lx = (a.lp || 'tr').includes('l') ? 0 : 100 - L, ly = (a.lp || 'tr').includes('t') ? 0 : 100 - L;
     const cx = lx + L / 2, cy = ly + L / 2, k = S * 100 / L;   // k：放大後的圖比放大鏡寬幾倍
     const px = (0.5 - x / 100 * k) / (1 - k) * 100, py = (0.5 - y / 100 * k) / (1 - k) * 100;   // 讓要看的那一點剛好在放大鏡正中間
