@@ -118,6 +118,20 @@
     .crow span { flex: 1; }
     .crow .del { border-color: #c62828; color: #c62828; padding: 4px 12px; }
     @media (max-width: 600px) { .padd { grid-template-columns: 1fr; } }
+    /* 大家來找碴 */
+    .fwrap { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; width: 100%; }
+    .fpanel { container-type: inline-size; position: relative; width: min(46vw, 460px, calc((100vh - 250px) * 4 / 3)); aspect-ratio: 4 / 3; border-radius: 20px; overflow: hidden; border: 5px solid #fff; box-shadow: 0 4px 12px rgba(0,0,0,.22); background: linear-gradient(#bfe8ff 0 62%, #a6e36a 62%); }
+    @media (max-aspect-ratio: 1/1) { .fpanel { width: min(92vw, 460px, calc((100vh - 330px) * 2 / 3)); } }
+    .fpanel .fi { position: absolute; transform: translate(-50%, -50%); line-height: 1; filter: drop-shadow(0 2px 2px rgba(0,0,0,.2)); pointer-events: none; }
+    .fpanel .fa { position: absolute; left: 50%; top: 58%; width: 44%; transform: translate(-50%, -50%); pointer-events: none; }
+    .fpanel .fa.emo { font-size: 36cqw; line-height: 1; width: auto; text-align: center; }
+    .fpanel .hit { position: absolute; transform: translate(-50%, -50%); width: 17cqw; height: 17cqw; border-radius: 50%; border: 0; background: transparent; padding: 0; }
+    .fpanel .ring { position: absolute; transform: translate(-50%, -50%); width: 17cqw; height: 17cqw; border-radius: 50%; border: 1.4cqw solid #3ba53b; box-shadow: 0 0 0 .6cqw #fff; pointer-events: none; animation: ringin .4s both; }
+    .fpanel .ring.show { border-color: #e0452b; animation: ringin .4s both, pulse .8s .4s infinite; }
+    @keyframes ringin { from { transform: translate(-50%, -50%) scale(2); opacity: 0; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+    #fMsg { min-height: 40px; font-size: 26px; font-weight: bold; text-align: center; color: #c2410c; }
+    #fMsg.ok { color: #2c7a2c; }
+    #fCnt { font-size: 28px; letter-spacing: 4px; }
   </style>
 </head>
 <body>
@@ -130,6 +144,7 @@
   <button class="big-btn" data-go="look">看一看<small>認識每種動物的特色</small></button>
   <button class="big-btn" data-go="pick">選一選<small>有提示，一起學</small></button>
   <button class="big-btn" data-go="test">考考你<small>沒有提示</small></button>
+  <button class="big-btn" data-go="find">大家來找碴<small>兩張圖有 3 個地方不一樣</small></button>
 
   <details class="parent" id="parent">
     <summary>家長設定</summary>
@@ -177,6 +192,15 @@
   <div class="opts" id="opts"></div>
 </div>
 
+<!-- ============ 大家來找碴 ============ -->
+<div class="screen" id="find">
+  <button class="round-btn back" aria-label="回選單">←</button>
+  <div id="fCnt"></div>
+  <div class="fwrap"><div class="fpanel" id="fL"></div><div class="fpanel" id="fR"></div></div>
+  <div id="fMsg">兩張圖有 3 個地方不一樣，找找看！</div>
+  <button class="go-btn" id="fGive">我找不到了，告訴我</button>
+</div>
+
 <div id="toast"></div>
 <div class="overlay" id="result">
   <div class="box">
@@ -188,7 +212,7 @@
 </div>
 
 <script>
-const APP_VER = 'v2026.10.27-2';   // 每次修改都要換版號，才看得出載入的是不是新版
+const APP_VER = 'v2026.10.31-1';   // 每次修改都要換版號，才看得出載入的是不是新版
 function $(id) { return document.getElementById(id); }
 $('ver').textContent = APP_VER;
 
@@ -287,6 +311,7 @@ function go(id) {
   if (id === 'menu') { paintStat(); paintCustoms(); }
   if (id === 'look') { mode = 'look'; startLook(); }
   if (id === 'list') paintList();
+  if (id === 'find') { mode = 'find'; startFind(); }
   if (id === 'pick' || id === 'test') { mode = id; startPlay(); }
 }
 document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => go(b.dataset.go)));
@@ -402,6 +427,84 @@ $('opts').addEventListener('click', async e => {
     say(t === BIG && !cur.big ? `${cur.n}的${cur.m || '嘴巴不大'}。${sentence(cur)}` : `再看看。${sentence(cur)}`);
   }
 });
+
+// ============ 大家來找碴 ============
+// 兩張圖：同一隻動物、同樣的小東西。右邊有 3 處不一樣（少一樣、多一樣、換成別的）。
+// 點到不一樣的地方 → 兩邊都圈起來、說「好棒棒」。點錯不扣分，只輕輕說「再找找看」。
+// 沒找到的：按「告訴我」（或點錯太多次），會一個一個圈起來、用說的告訴她哪裡不一樣。
+const F_NAME = { '🌸': '小花', '🌼': '黃色的小花', '🦋': '蝴蝶', '🐝': '蜜蜂', '🍎': '蘋果', '🍊': '橘子', '⚽': '足球', '🏀': '籃球', '🎈': '氣球', '🎁': '禮物', '⭐': '星星', '🌙': '月亮', '🌳': '大樹', '🌲': '松樹', '☁️': '雲', '🌈': '彩虹', '🍄': '香菇', '🌻': '向日葵' };
+const F_PAIRS = [['🌸', '🌼'], ['🦋', '🐝'], ['🍎', '🍊'], ['⚽', '🏀'], ['🎈', '🎁'], ['⭐', '🌙'], ['🌳', '🌲'], ['☁️', '🌈'], ['🍄', '🌻']];
+const F_SLOTS = [[13, 17, 13], [87, 17, 13], [11, 50, 12], [89, 52, 12], [14, 86, 12], [86, 86, 12]];   // x%、y%、字大小
+let fDiffs = [], fSlotItems = [], fFound = 0, fMiss = 0, fDone = false, fRevealing = false;
+const fImg = a => a.img ? `<img class="fa" src="img/${a.img}.svg" alt="">` : `<div class="fa emo">${esc(a.e)}</div>`;
+function startFind() {
+  const a = animals()[rnd(animals().length)];
+  const pairs = shuffle(F_PAIRS.slice()), idx = shuffle([0, 1, 2, 3, 4, 5]), types = shuffle(['miss', 'add', 'swap']);
+  fSlotItems = F_SLOTS.map((sl, i) => ({ sl, pair: pairs[i] }));
+  fDiffs = types.map((t, k) => ({ slot: idx[k], type: t, found: false }));
+  const panel = side => fImg(a) + fSlotItems.map((it, i) => {
+    const d = fDiffs.find(x => x.slot === i); let e = it.pair[0];
+    if (d) {
+      if (d.type === 'miss') e = side === 'L' ? it.pair[0] : '';
+      else if (d.type === 'add') e = side === 'L' ? '' : it.pair[0];
+      else e = side === 'L' ? it.pair[0] : it.pair[1];
+    }
+    const [x, y, z] = it.sl;
+    return (e ? `<span class="fi" style="left:${x}%;top:${y}%;font-size:${z}cqw">${e}</span>` : '') + (d ? `<button class="hit" data-d="${i}" style="left:${x}%;top:${y}%" aria-label="這裡不一樣"></button>` : '');
+  }).join('');
+  $('fL').innerHTML = panel('L'); $('fR').innerHTML = panel('R');
+  fFound = 0; fMiss = 0; fDone = false; fRevealing = false;
+  $('fMsg').className = ''; $('fMsg').textContent = '兩張圖有 3 個地方不一樣，找找看！';
+  $('fGive').style.display = '';
+  paintFind(); say('兩張圖有三個地方不一樣，找找看！');
+}
+const paintFind = () => { $('fCnt').textContent = '🔍'.repeat(fFound) + '▫️'.repeat(3 - fFound); };
+function ringAt(slot, cls) {
+  const [x, y] = F_SLOTS[slot];
+  ['fL', 'fR'].forEach(id => { const r = document.createElement('div'); r.className = 'ring ' + (cls || ''); r.style.left = x + '%'; r.style.top = y + '%'; $(id).appendChild(r); });
+}
+function fDescribe(d) {
+  const pr = fSlotItems[d.slot].pair, n = e => F_NAME[e] || '小東西';
+  if (d.type === 'miss') return `這裡，右邊少了${n(pr[0])}`;
+  if (d.type === 'add') return `這裡，右邊多了${n(pr[0])}`;
+  return `這裡，左邊是${n(pr[0])}，右邊變成${n(pr[1])}`;
+}
+async function fFinish(allFound) {
+  const s = session; fDone = true; $('fGive').style.display = 'none';
+  if (allFound) { $('fMsg').className = 'ok'; $('fMsg').textContent = '全部都找到了！好棒棒！'; soundOk(); await say('全部都找到了！好棒棒！'); }
+  else { $('fMsg').className = 'ok'; $('fMsg').textContent = '都看完了，下一次一定找得到！'; await say('都看完了，下一次一定找得到！'); }
+  await wait(600); if (s !== session) return;
+  $('rTitle').textContent = allFound ? '全部找到了！' : '看完了！'; $('result').style.display = 'flex';
+}
+async function revealRest() {
+  if (fDone || fRevealing) return; fRevealing = true; const s = session;
+  $('fGive').style.display = 'none'; $('fMsg').className = ''; $('fMsg').textContent = '沒關係，我們一起看～';
+  await say('沒關係，我們一起看。');
+  for (const d of fDiffs) {
+    if (d.found || s !== session) continue;
+    d.found = true; fFound++; paintFind(); ringAt(d.slot, 'show');
+    const t = fDescribe(d); $('fMsg').textContent = t; await say(t); await wait(500);
+  }
+  if (s === session) fFinish(false);
+}
+function onFindTap(e) {
+  if (fDone || fRevealing) return;
+  const h = e.target.closest('.hit');
+  if (h) {
+    const d = fDiffs.find(x => x.slot === +h.dataset.d);
+    if (d && !d.found) {
+      d.found = true; fFound++; paintFind(); ringAt(d.slot); soundOk();
+      $('fMsg').className = 'ok'; $('fMsg').textContent = '好棒棒！';
+      if (fFound === fDiffs.length) fFinish(true); else say('好棒棒！');
+    }
+    return;
+  }
+  if (!e.target.closest('.fpanel')) return;
+  fMiss++; soundPop(); $('fMsg').className = ''; $('fMsg').textContent = '再找找看～';
+  if (fMiss >= 4) revealRest();
+}
+$('find').addEventListener('click', onFindTap);
+$('fGive').addEventListener('click', revealRest);
 
 function showResult(title) {
   $('rTitle').textContent = title;
